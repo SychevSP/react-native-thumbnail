@@ -12,7 +12,7 @@
 }
 RCT_EXPORT_MODULE()
 
-RCT_EXPORT_METHOD(get:(NSString *)filepath resolve:(RCTPromiseResolveBlock)resolve
+RCT_EXPORT_METHOD(get:(NSString *)filepath resultPath:(NSString *)resultPath resolve:(RCTPromiseResolveBlock)resolve
                                reject:(RCTPromiseRejectBlock)reject)
 {
     @try {
@@ -29,14 +29,20 @@ RCT_EXPORT_METHOD(get:(NSString *)filepath resolve:(RCTPromiseResolveBlock)resol
         
         CGImageRef imgRef = [generator copyCGImageAtTime:time actualTime:NULL error:&err];
         UIImage *thumbnail = [UIImage imageWithCGImage:imgRef];
-        // save to temp directory
-        NSString* tempDirectory = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory,
-                                                                       NSUserDomainMask,
-                                                                       YES) lastObject];
         
         NSData *data = UIImageJPEGRepresentation(thumbnail, 1.0);
         NSFileManager *fileManager = [NSFileManager defaultManager];
-        NSString *fullPath = [tempDirectory stringByAppendingPathComponent: [NSString stringWithFormat:@"thumb-%@.jpg", [[NSProcessInfo processInfo] globallyUniqueString]]];
+
+        NSString *fullPath = nil;
+        if (resultPath) {
+            fullPath = resultPath;
+        } else {
+            // save to temp directory
+            NSString* tempDirectory = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory,
+                                                                       NSUserDomainMask,
+                                                                       YES) lastObject];
+            fullPath = [tempDirectory stringByAppendingPathComponent: [NSString stringWithFormat:@"thumb-%@.jpg", [[NSProcessInfo processInfo] globallyUniqueString]]];
+        }
         [fileManager createFileAtPath:fullPath contents:data attributes:nil];
         CGImageRelease(imgRef);
         if (resolve)
